@@ -24,16 +24,10 @@
   (relevant? [_ namespace parameters hints]
     (some #(and (= namespace (:namespace %)) (= ks (:hint %))) hints)))
 
-;(defonce view-updates (atom {}))
-
 (defonce view-config
   (atom
    {:views   {:comments (MemoryView. :comments [:comments])}
     :send-fn websockets-send-fn!}))
-
-  ;;  :send-fn (fn [subscriber-key data]
-  ;;             (swap! view-updates #(assoc % subscriber-key data))
-  ;;             (info "sending to:" subscriber-key "data:" data))}))
 
 ;; Our update function, very basic
 (defn update-memory-store!
