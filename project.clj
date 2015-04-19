@@ -15,10 +15,16 @@
                  [compojure "1.3.3"]
                  [org.clojure/clojurescript "0.0-3196"]
                  [org.omcljs/om "0.8.8"]
-                 [views "1.3.0" :exclusions [prismatic/plumbing]]
+                 [views "1.3.0" :exclusions [prismatic/plumbing]] ; assumes environ dependency!?
                  [prismatic/plumbing "0.4.2"]
                  [prismatic/om-tools "0.3.11"]
                  [sablono "0.3.4"]
+
+                 ;; here below added w/o internet access, may not be up to date
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [com.cognitect/transit-cljs "0.8.188"]
+                 [com.cognitect/transit-clj "0.8.259"]
+                 [environ "1.0.0"]
                  ]
 
   :plugins [[lein-cljsbuild "1.0.5"]]

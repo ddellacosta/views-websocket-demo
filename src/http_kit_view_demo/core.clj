@@ -11,11 +11,14 @@
    [compojure.route :as route]
    [compojure.handler :refer [site]]
    [compojure.core :refer [defroutes GET POST DELETE ANY context]]
-   [clojure.tools.logging :refer [info]]))
+   [clojure.tools.logging :refer [info]]
+   [http-kit-view-demo.lib.views.config :as vc]
+   [views.core :refer [subscribe!]]
+   ))
 
 (def session-store (atom {}))
 
-(def channels (atom {}))
+;(def channels (atom {}))
 
 (defn close-handler
   [status]
@@ -25,7 +28,8 @@
   [channel data]
   ;;(send! channel data)
   (info "SESSION: " @session-store)
-  (doseq [[k c] @channels] (send! c data)))
+  ;(doseq [[k c] @channels] (send! c data)))
+  (vc/update-memory-store! :db1 [:comments] data))
 
 (defn default-handler [req]
   (with-subprotocol-channel req channel (re-pattern "http://localhost:8080") "default"
@@ -33,14 +37,16 @@
     (info "channel? " channel)
     (info "req? " req)
     (info "")
-    (swap! channels assoc (get-in req [:headers "sec-websocket-key"]) channel)
+    (let [sk (get-in req [:headers "sec-websocket-key"])]
+      (swap! vc/subscribers assoc sk channel)
+      (subscribe! vc/view-config :db1 :comments [] sk))
     ;; communicate with client using method defined above
     (on-close channel close-handler)
     (on-receive channel #(receive-handler channel %))))
 
 (defroutes all-routes
   (GET "/" [] (content-type (resource-response "templates/index.html") "Content-Type: Document"))
-  (GET "/ws" [] handler)                      ;; websocket
+  (GET "/ws" [] default-handler)                      ;; websocket
   (route/not-found "<p>Page not found.</p>")) ;; all other, return 404
 
 (defonce server (atom nil))

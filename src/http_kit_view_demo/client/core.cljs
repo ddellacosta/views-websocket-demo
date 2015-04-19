@@ -2,6 +2,7 @@
   (:require
    [om.core :as om]
    [om-tools.core :refer-macros [defcomponentk]]
+   [cljs.reader :refer [read-string]]
    [sablono.core :as html :refer-macros [html]]))
 
 (defonce ws-chan (atom nil))
@@ -14,11 +15,10 @@
 
 (defn receive-message!
   [msg]
-  (.log js/console (str "GOT MESSAGE! " (.-data msg))))
+  (.log js/console (str "GOT MESSAGE! " (read-string (.-data msg)))))
 
 (defn send-message!
   [ws-chan msg]
-;;  (.log js/console (str "MSG? " msg))
   (.send ws-chan msg))
 
 (defcomponentk app
