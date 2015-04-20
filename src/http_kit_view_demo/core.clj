@@ -13,7 +13,7 @@
    [compojure.core :refer [defroutes GET POST DELETE ANY context]]
    [clojure.tools.logging :refer [info]]
    [http-kit-view-demo.lib.views.config :as vc]
-   [views.core :refer [subscribe!]]
+   [views.core :refer [subscribe! unsubscribe-all!]]
    [http-kit-view-demo.lib.websockets :refer [receive-transit!]]
    ))
 
@@ -22,8 +22,10 @@
 ;(def channels (atom {}))
 
 (defn close-handler
-  [status]
-  (println "channel closed: " status))
+  [sk]
+  (fn [status]
+    (unsubscribe-all! vc/view-config sk)
+    (println "channel closed: " status)))
 
 (defn receive-handler
   [channel data]
@@ -42,18 +44,18 @@
     (info "")
     (let [sk (get-in req [:headers "sec-websocket-key"])]
       (swap! vc/subscribers assoc sk channel)
-      (subscribe! vc/view-config :db1 :comments [] sk))
+      (subscribe! vc/view-config :db1 :comments [] sk)
+      (on-close channel (close-handler sk)))
     ;; communicate with client using method defined above
-    (on-close channel close-handler)
     (on-receive channel #(receive-handler channel %))))
 
 (defn views-handler [req]
   (with-subprotocol-channel req channel (re-pattern "http://localhost:8080") "views"
     (let [sk (get-in req [:headers "sec-websocket-key"])]
       (swap! vc/subscribers assoc sk channel)
-      (subscribe! vc/view-config :db1 :comments [] sk))
+      (subscribe! vc/view-config :db1 :comments [] sk)
+      (on-close channel (close-handler sk)))
     ;; communicate with client using method defined above
-    (on-close channel close-handler)
     (on-receive channel #(receive-handler channel %))))
 
 (defroutes all-routes

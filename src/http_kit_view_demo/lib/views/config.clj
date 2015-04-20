@@ -1,6 +1,6 @@
 (ns http-kit-view-demo.lib.views.config
   (:require
-   [views.core :refer [update-watcher! log-statistics! add-hint! hint]] 
+   [views.core :refer [update-watcher! log-statistics! add-hint! refresh-views! hint]]
    [views.protocols :refer [IView id data relevant?]]
    [clojure.tools.logging :refer [debug error info]]
    [http-kit-view-demo.lib.websockets :refer [send-transit!]]))
@@ -34,7 +34,8 @@
 (defn update-memory-store!
   [ns view-id value]
   (swap! memory-store update-in (-> [ns] (into view-id)) conj value)
-  (add-hint! view-config (hint ns view-id)))
+  (println view-id value)
+  (refresh-views! view-config [(hint ns view-id)]))
 
 (defn init-views!
   ([view-config] (init-views! view-config -1 20))
