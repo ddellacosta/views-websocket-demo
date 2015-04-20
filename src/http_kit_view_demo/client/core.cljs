@@ -5,56 +5,15 @@
    [cljs.core.async :refer [chan sub <! map< put!]]
    [om.core :as om]
    [om-tools.core :refer-macros [defcomponentk]]
+   [om-tools.mixin :refer-macros [defmixin]]
    [sablono.core :as html :refer-macros [html]]
-   [cognitect.transit :as t]))
-
-(defonce ws-chans (atom {}))
-
-(def ws-url "ws://localhost:8080/ws")
-(def views-ws-url "ws://localhost:8080/ws-views")
-
-(defn default-receive-handler
-  [msg]
-  (.log js/console "RECEIVED MESSAGE: " msg))
-
-(defn make-websocket!
-  ([protocol]
-     (make-websocket! ws-url protocol))
-  ([url protocol]
-     (make-websocket! ws-url protocol default-receive-handler))
-  ([url protocol receive-handler]
-     (let [ws-chan (js/WebSocket. url protocol)]
-       (set! (.-onmessage ws-chan) receive-handler)
-       (swap! ws-chans assoc protocol ws-chan))))
-
-(def json-reader (t/reader :json))
-
-(defn ab2str
-  [buf]
-  (reduce #(str %1 (.fromCharCode js/String %2)) "" (array-seq (js/Uint8Array. buf))))
-
-(defn receive-transit-msg-fn!
-  [update-fn]
-  (fn [msg]
-    (let [r (new js/FileReader)]
-      (.readAsArrayBuffer r (.-data msg))
-      (set! (.-onload r) #(update-fn (->> (.-result r) ab2str (t/read json-reader)))))))
-
-(def json-writer (t/writer :json))
-
-(defn send-transit-msg!
-  [ws-chan msg]
-  (.send ws-chan (t/write json-writer msg)))
+   [http-kit-view-demo.client-lib.websockets :refer [ws-chans send-transit-msg! receive-transit-msg-fn! views-ws-url make-websocket!]]))
 
 (defcomponentk app
   [data owner opts]
   (render-state [_ state]
     (html
-     [:div
-      [:div.comments
-       (map
-        #(into [:span.comment {:style #js {:border "1px solid black" :marginRight "3px" :padding "5px"}}] %)
-        (:comments data))]
+     [:div.main
       [:div.input {:style #js {:marginTop "12px"}}
        [:input#msg {:type      "text"
                     :on-change #(om/set-state! owner :msg (.. % -target -value))
@@ -63,7 +22,12 @@
                                   (om/set-state! owner :msg ""))
                     :value     (:msg state)}]
        [:button {:on-click #(send-transit-msg! (get @ws-chans "views") (:msg state))}
-        "Send message"]]])))
+        "Send message"]]
+      [:div.comments
+       (map
+        #(into [:div.comment {:style #js {:borderBottom "1px solid black" :marginRight "3px" :padding "5px"}}] %)
+        (:comments data))]
+      ]))) ; :div.main
 
 (def view-msg-queue (atom nil))
 

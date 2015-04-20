@@ -3,9 +3,7 @@
    [views.core :refer [update-watcher! log-statistics! add-hint! hint]] 
    [views.protocols :refer [IView id data relevant?]]
    [clojure.tools.logging :refer [debug error info]]
-   [http-kit-view-demo.lib.websockets :refer [send-transit!]]
-   ))
-;   [org.httpkit.server :refer [send!]]))
+   [http-kit-view-demo.lib.websockets :refer [send-transit!]]))
 
 (defonce subscribers (atom {}))
 
