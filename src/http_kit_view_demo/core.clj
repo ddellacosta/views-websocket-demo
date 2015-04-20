@@ -14,6 +14,7 @@
    [clojure.tools.logging :refer [info]]
    [http-kit-view-demo.lib.views.config :as vc]
    [views.core :refer [subscribe!]]
+   [http-kit-view-demo.lib.websockets :refer [receive-transit!]]
    ))
 
 (def session-store (atom {}))
@@ -27,9 +28,11 @@
 (defn receive-handler
   [channel data]
   ;;(send! channel data)
-  (info "SESSION: " @session-store)
+  ;;(info "SESSION: " @session-store)
+  (info "TYPE OF DATA? " (type data))
   ;(doseq [[k c] @channels] (send! c data)))
-  (vc/update-memory-store! :db1 [:comments] data))
+  (let [data' (receive-transit! data)]
+    (vc/update-memory-store! :db1 [:comments] data')))
 
 (defn default-handler [req]
   (with-subprotocol-channel req channel (re-pattern "http://localhost:8080") "default"
@@ -44,9 +47,19 @@
     (on-close channel close-handler)
     (on-receive channel #(receive-handler channel %))))
 
+(defn views-handler [req]
+  (with-subprotocol-channel req channel (re-pattern "http://localhost:8080") "views"
+    (let [sk (get-in req [:headers "sec-websocket-key"])]
+      (swap! vc/subscribers assoc sk channel)
+      (subscribe! vc/view-config :db1 :comments [] sk))
+    ;; communicate with client using method defined above
+    (on-close channel close-handler)
+    (on-receive channel #(receive-handler channel %))))
+
 (defroutes all-routes
   (GET "/" [] (content-type (resource-response "templates/index.html") "Content-Type: Document"))
   (GET "/ws" [] default-handler)                      ;; websocket
+  (GET "/ws-views" [] views-handler)                      ;; websocket
   (route/not-found "<p>Page not found.</p>")) ;; all other, return 404
 
 (defonce server (atom nil))

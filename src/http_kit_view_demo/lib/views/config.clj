@@ -3,14 +3,17 @@
    [views.core :refer [update-watcher! log-statistics! add-hint! hint]] 
    [views.protocols :refer [IView id data relevant?]]
    [clojure.tools.logging :refer [debug error info]]
-   [org.httpkit.server :refer [send!]]))
+   [http-kit-view-demo.lib.websockets :refer [send-transit!]]
+   ))
+;   [org.httpkit.server :refer [send!]]))
 
 (defonce subscribers (atom {}))
 
 (defn websockets-send-fn!
   [sk data]
   (info "sending to:" sk "data:" (last data))
-  (send! (get @subscribers sk) (pr-str (last data))))
+  (send-transit! (get @subscribers sk) (last data)))
+  ;;(send! (get @subscribers sk) (pr-str (last data))))
 
 (defonce memory-store
   (atom {:db1 {:comments []}

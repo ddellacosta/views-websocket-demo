@@ -9,25 +9,31 @@
 
   :dependencies [
                  [org.clojure/clojure "1.7.0-beta1"]
+
+                 ;; Web
                  [http-kit "2.1.18"]
                  [ring "1.3.2"]
                  [ring.middleware.logger "0.5.0"]
                  [compojure "1.3.3"]
+
+                 ;; Client
                  [org.clojure/clojurescript "0.0-3196"]
                  [org.omcljs/om "0.8.8"]
                  [views "1.3.0" :exclusions [prismatic/plumbing]] ; assumes environ dependency!?
-                 [prismatic/plumbing "0.4.2"]
                  [prismatic/om-tools "0.3.11"]
                  [sablono "0.3.4"]
 
-                 ;; here below added w/o internet access, may not be up to date
+                 ;; Various Util
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [com.cognitect/transit-cljs "0.8.188"]
-                 [com.cognitect/transit-clj "0.8.259"]
+                 [com.cognitect/transit-cljs "0.8.207"]
+                 [com.cognitect/transit-clj "0.8.271"]
                  [environ "1.0.0"]
+                 [prismatic/schema "0.4.0"]
+                 [prismatic/plumbing "0.4.2"] ; ensure most current version for om-tools?
                  ]
 
-  :plugins [[lein-cljsbuild "1.0.5"]]
+  :plugins [[lein-cljsbuild "1.0.5"]
+            [environ "1.0.0"]]
 
   :cljsbuild {
     :builds [{:id "dev"
