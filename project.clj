@@ -19,7 +19,8 @@
                  ;; Client
                  [org.clojure/clojurescript "0.0-3196"]
                  [org.omcljs/om "0.8.8"]
-                 [views "1.3.0" :exclusions [prismatic/plumbing]] ; assumes environ dependency!?
+                 [views "1.4.0-SNAPSHOT" :exclusions [prismatic/plumbing]] ; assumes environ dependency!?
+
                  [prismatic/om-tools "0.3.11"]
                  [sablono "0.3.4"]
 
@@ -30,6 +31,9 @@
                  [environ "1.0.0"]
                  [prismatic/schema "0.4.0"]
                  [prismatic/plumbing "0.4.2"] ; ensure most current version for om-tools?
+
+                 [views/honeysql "0.1.0-SNAPSHOT"]
+                 [com.h2database/h2 "1.4.187"]
                  ]
 
   :plugins [[lein-cljsbuild "1.0.5"]

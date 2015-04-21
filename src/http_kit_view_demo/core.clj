@@ -14,8 +14,7 @@
    [clojure.tools.logging :refer [info]]
    [http-kit-view-demo.lib.views.config :as vc]
    [views.core :refer [subscribe! unsubscribe-all!]]
-   [http-kit-view-demo.lib.websockets :refer [receive-transit!]]
-   ))
+   [http-kit-view-demo.lib.websockets :refer [receive-transit!]]))
 
 (def session-store (atom {}))
 
@@ -29,38 +28,21 @@
 
 (defn receive-handler
   [channel data]
-  ;;(send! channel data)
-  ;;(info "SESSION: " @session-store)
-  (info "TYPE OF DATA? " (type data))
-  ;(doseq [[k c] @channels] (send! c data)))
   (let [data' (receive-transit! data)]
     (vc/update-memory-store! :db1 [:comments] data')))
-
-(defn default-handler [req]
-  (with-subprotocol-channel req channel (re-pattern "http://localhost:8080") "default"
-    (info "")
-    (info "channel? " channel)
-    (info "req? " req)
-    (info "")
-    (let [sk (get-in req [:headers "sec-websocket-key"])]
-      (swap! vc/subscribers assoc sk channel)
-      (subscribe! vc/view-config :db1 :comments [] sk)
-      (on-close channel (close-handler sk)))
-    ;; communicate with client using method defined above
-    (on-receive channel #(receive-handler channel %))))
 
 (defn views-handler [req]
   (with-subprotocol-channel req channel (re-pattern "http://localhost:8080") "views"
     (let [sk (get-in req [:headers "sec-websocket-key"])]
       (swap! vc/subscribers assoc sk channel)
       (subscribe! vc/view-config :db1 :comments [] sk)
+      (subscribe! vc/view-config :views/honeysql :todos [] sk)
       (on-close channel (close-handler sk)))
     ;; communicate with client using method defined above
     (on-receive channel #(receive-handler channel %))))
 
 (defroutes all-routes
   (GET "/" [] (content-type (resource-response "templates/index.html") "Content-Type: Document"))
-  (GET "/ws" [] default-handler)                      ;; websocket
   (GET "/ws-views" [] views-handler)                      ;; websocket
   (route/not-found "<p>Page not found.</p>")) ;; all other, return 404
 
@@ -84,5 +66,7 @@
       wrap-content-type
       logger/wrap-with-logger))
 
-(defn start-server! [&args]
+(defn start-server! []
   (reset! server (run-server (run-app) {:port 8080})))
+
+(defn init-views! [] (vc/init-views! vc/view-config))

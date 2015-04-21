@@ -12,21 +12,29 @@
 (defcomponentk app
   [data owner opts]
   (render-state [_ state]
+    (.log js/console (pr-str data))
     (html
      [:div.main
-      [:div.input {:style #js {:marginTop "12px"}}
-       [:input#msg {:type      "text"
-                    :on-change #(om/set-state! owner :msg (.. % -target -value))
-                    :on-key-up #(when (= 13 (.-keyCode %))
-                                  (send-transit-msg! (get @ws-chans "views") (:msg state))
-                                  (om/set-state! owner :msg ""))
-                    :value     (:msg state)}]
-       [:button {:on-click #(send-transit-msg! (get @ws-chans "views") (:msg state))}
-        "Send message"]]
-      [:div.comments
-       (map
-        #(into [:div.comment {:style #js {:borderBottom "1px solid black" :marginRight "3px" :padding "5px"}}] %)
-        (:comments data))]
+      [:div.messages {:style {:width "50%" :display "table-cell" :valign "top"}}
+       [:h2 "Chat!!"]
+        [:div.input {:style #js {:marginTop "12px"}}
+         [:input#msg {:type      "text"
+                      :on-change #(om/set-state! owner :msg (.. % -target -value))
+                      :on-key-up #(when (= 13 (.-keyCode %))
+                                    (send-transit-msg! (get @ws-chans "views") (:msg state))
+                                    (om/set-state! owner :msg ""))
+                      :value     (:msg state)}]
+         [:button {:on-click #(send-transit-msg! (get @ws-chans "views") (:msg state))}
+          "Send message"]]
+        [:div.comments
+         (map
+          #(into [:div.comment {:style #js {:borderBottom "1px solid black" :marginRight "3px" :padding "5px"}}] %)
+          (:comments data))]]
+      [:div.todos {:style {:display "table-cell"}}
+       [:h2 "TODOS!"]
+       [:ul
+        (for [i (:todos data)]
+         [:li (:name i)])]]
       ]))) ; :div.main
 
 (def view-msg-queue (atom nil))
@@ -45,7 +53,7 @@
       (go (while true
             (let [msg (<! vm-chan)]
               (.log js/console "GOT MSG: " (pr-str msg))
-              (om/update! data [:comments] msg))))))
+              (om/update! data [(ffirst msg)] (second msg)))))))
   (render-state [_ state]
     (app-root data {:opts opts :state state})))
 
