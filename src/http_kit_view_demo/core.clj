@@ -14,7 +14,8 @@
    [clojure.tools.logging :refer [info]]
    [http-kit-view-demo.lib.views.config :as vc]
    [views.core :refer [subscribe! unsubscribe-all!]]
-   [http-kit-view-demo.lib.websockets :refer [receive-transit!]]))
+   [http-kit-view-demo.lib.websockets :refer [receive-transit!]])
+ (:gen-class))
 
 (def session-store (atom {}))
 
@@ -70,3 +71,7 @@
   (reset! server (run-server (run-app) {:port 8080})))
 
 (defn init-views! [] (vc/init-views! vc/view-config))
+
+(defn -main []
+  (init-views!)
+  (start-server!))
