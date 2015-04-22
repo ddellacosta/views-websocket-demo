@@ -35,6 +35,8 @@
                  [views/honeysql "0.1.0-SNAPSHOT"]
                  [com.h2database/h2 "1.4.187"]
                  ]
+               
+  :main http-kit-view-demo.core               
 
   :plugins [[lein-cljsbuild "1.0.5"]
             [environ "1.0.0"]]
